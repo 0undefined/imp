@@ -1,3 +1,8 @@
+#ifndef AST_H
+#define AST_H
+
+#include "mem.h"
+
 typedef enum {
   AExpr_num,
   AExpr_loc,
@@ -15,20 +20,24 @@ typedef enum {
   bool,
 } type_t;
 
-typedef struct {
+struct AExpr {
   AExpr_t type;
   union {
     int   num;
     char* loc;
-    struct {struct AExpr *l; struct AExpr *r;} add;
-    struct {struct AExpr *l; struct AExpr *r;} sub;
-    struct {struct AExpr *l; struct AExpr *r;} mul;
+    struct {struct AExpr *l; struct AExpr *r;} binary;
   } exp;
-} AExpr;
+};
 
-AExpr new_num(int num) {
-  return (AExpr){
-    .type = AExpr_num,
-    .exp = {.num = num}
-  };
-}
+struct AExpr*
+new_num(memory* m, int num);
+
+struct AExpr*
+new_loc(memory* m, char *varname);
+
+struct AExpr*
+new_infix(memory* m, AExpr_t t, struct AExpr *l, struct AExpr *r);
+
+void print_ast(struct AExpr *expr);
+
+#endif

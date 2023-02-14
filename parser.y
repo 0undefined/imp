@@ -1,52 +1,60 @@
 %{
 #include <stdio.h>
-#include "mem.c"
+#include "ast.h"
 
+extern memory *m;
+extern struct AExpr *ast;
+extern int yylineno;
+extern char* yytext;
+int yylex();
+void yyerror(const char *s);
 
-memory *m = NULL;
-
-#define MkExpr(t)\
-   AExpr* e = memory_allocate(m, sizeof(AExpr)); e->type = AExpr_##t
-
-/* Use for parsing infix notation */
-#define MkExprBin(t)\
-   AExpr* e = memory_allocate(m, sizeof(AExpr)); e->type = AExpr_##t; e->exp.t.l = $1; e->exp.t.r = $3
-
-/* Use for parsing stuff like "(+) x y" */
-#define MkExprBinPrefix(t)\
-   AExpr* e = memory_allocate(m, sizeof(AExpr)); e->type = AExpr_##t; e->exp.t.l = $2; e->exp.t.r = $3
-
-%define api.value.type {AExpr}
+//%define api.value.type {AExpr}
 
 %}
 
-%token LPAR RPAR
+%start ast
+
+
+%union {
+  int   num;
+  char* loc;
+  struct {struct AExpr *l; struct AExpr *r;} infix;
+  struct AExpr *expression;
+}
+
+%token LPAR RPAR RCURLY LCURLY
 
 %token TRUE FALSE
 
-%token FLOAT
-%token NUMBER
+%token <num> NUMBER
+%token <loc> VAR
 
-%left MUL
-%left ADD SUB
+%left <mul> MUL
+%left <infix> ADD SUB
 
 %token EOL
 
+%type <expression> ast
+%type <expression> exp factor term
+
+
 %%
-calclist: %empty
-  | calclist exp EOL { $$ = $2; }
+ast: { $$ = NULL; }
+  | exp EOL { $$ = $1; ast = $$; }
   ;
 
 exp: factor
-   | exp ADD factor { MkExprBin(add); $$ = e; }
-   | exp SUB factor { MkExprBin(sub); $$ = e; }
+   | exp ADD factor { $$ = new_infix(m, AExpr_add, $1, $3); }
+   | exp SUB factor { $$ = new_infix(m, AExpr_sub, $1, $3); }
+   // | exp SUB factor { MkExprBin(sub); $$ = e; }
    ;
 
 factor: term
-   | factor MUL term { MkExprBin(mul); $$ = e; }
+   | factor MUL term { $$ = new_infix(m, AExpr_mul, $1, $3); }
    ;
 
-term: NUMBER { MkExpr(num); e->exp.num; $$ = e; }
+term: NUMBER { $$ = new_num(m, $1); }
 
    | LPAR exp RPAR { $$ = $2; }
    ;

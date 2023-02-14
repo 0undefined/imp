@@ -1,24 +1,29 @@
 %{
-#include "bison.tab.h"
+#include "parser.tab.h"
+extern void yyerror(const char *message);
 %}
 
+%option noyywrap
 %%
+
+"("       { return LPAR; }
+")"       { return RPAR; }
+"{"       { return LCURLY; }
+"}"       { return RCURLY; }
+
+"true"    { return TRUE; }
+"false"   { return FALSE; }
+
+[ \r\t]     {  }
+
+-?[0-9]+    { yylval.num = atoi(yytext); return NUMBER; }
 
 "+"       { return ADD; }
 "-"       { return SUB; }
 "*"       { return MUL; }
 
-"("       { return LPAR; }
-")"       { return RPAR; }
+[a-zA-Z]  { yylval.loc = yytext; return VAR; }
 
--?[0-9]+    { yylval = atoi(yytext); return NUMBER; }
-
-"true"    { return TRUE; }
-"false"   { return FALSE; }
-
-[a-zA-Z]  { yylval = atoi(yytext); return NUMBER; }
-
-[ \t]     {  }
 \n        { return EOL; }
 
 %%

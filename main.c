@@ -2,11 +2,12 @@
 #include <stdlib.h>
 
 #include "ast.h"
-#include "parser.h"
+#include "parser.tab.h"
 
+memory *m = NULL;
 extern FILE* yyin;
 
-struct value_type *ast;
+struct AExpr *ast;
 
 int main (int argc, char* argv[]) {
   int ret = 0;
@@ -17,12 +18,16 @@ int main (int argc, char* argv[]) {
       exit(EXIT_FAILURE);
     }
   }
+
+  m = memory_new(sizeof(struct AExpr) * 1024);
+
   ret = yyparse();
 
   if (ret) {
     perror("failed to parse file");
   } else {
     print_ast(ast);
+	printf("\n");
   }
 
   return 0;
