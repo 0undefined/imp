@@ -6,6 +6,8 @@ parser.tab.h: parser.y
 lex.yy.c: scanner.l parser.tab.h
 	flex scanner.l
 
+%.c: %.h
+
 test: parser.tab.h lex.yy.c main.c mem.c ast.c
 	cc -g -Og -o $@ parser.tab.c lex.yy.c main.c mem.c ast.c -lfl
 

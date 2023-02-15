@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <wchar.h>
 #include "ast.h"
 
 struct AExpr*
@@ -181,32 +182,37 @@ bool ast_eq(struct CExpr* c0, struct CExpr* c1) {
 void print_aexp(struct AExpr *expr) {
   switch (expr->type) {
   case AExpr_num:
-    printf("%d", expr->exp.num);
+    wprintf(L"%d", expr->exp.num);
     break;
+
   case AExpr_loc:
-    printf("%s", expr->exp.loc);
+    wprintf(L"%s", expr->exp.loc);
     break;
+
   case AExpr_add:
-    putchar('(');
+    wprintf(L"(");
     print_aexp(expr->exp.binary.l);
-    fputs(" + ", stdout);;
+    wprintf(L" + ");;
     print_aexp(expr->exp.binary.r);
-    putchar(')');
+    wprintf(L")");
     break;
+
   case AExpr_sub:
-    putchar('(');
+    wprintf(L"(");
     print_aexp(expr->exp.binary.l);
-    fputs(" - ", stdout);;
+    wprintf(L" - ");;
     print_aexp(expr->exp.binary.r);
-    putchar(')');
+    wprintf(L")");
     break;
+
   case AExpr_mul:
-    putchar('(');
+    wprintf(L"(");
     print_aexp(expr->exp.binary.l);
-    fputs(" * ", stdout);;
+    wprintf(L" * ");;
     print_aexp(expr->exp.binary.r);
-    putchar(')');
+    wprintf(L")");
     break;
+
   default:
     fprintf(stderr, "Unmatched case in %s: %d\n", __func__, expr->type);
     break;
@@ -216,27 +222,32 @@ void print_aexp(struct AExpr *expr) {
 void print_bexp(struct BExpr *expr) {
   switch (expr->type) {
   case BExpr_cst:
-    printf("%s", expr->exp.cst ? "true" : "false");
+    wprintf(L"%s", expr->exp.cst ? "true" : "false");
     break;
+
   case BExpr_eq:
     print_aexp(expr->exp.cmp.l);
-    putchar('=');
+    wprintf(L" = ");
     print_aexp(expr->exp.cmp.r);
     break;
+
   case BExpr_le:
     print_aexp(expr->exp.cmp.l);
-    fputs(" ≤ ", stdout);;
+    wprintf(L" ≤ ");
     print_aexp(expr->exp.cmp.r);
     break;
+
   case BExpr_neg:
-    printf("¬");
+    wprintf(L"¬");
     print_bexp(expr->exp.unary);
     break;
+
   case BExpr_and:
     print_bexp(expr->exp.binary.l);
-    fputs(" ∧ ", stdout);;
+    wprintf(L" ∧ ");
     print_bexp(expr->exp.binary.r);
     break;
+
   default:
     fprintf(stderr, "Unmatched case in %s: %d\n", __func__, expr->type);
     break;
@@ -250,40 +261,46 @@ void print_ast(struct CExpr *expr) {
 
   switch (expr->type) {
   case CExpr_skip:
-    printf("skip");
+    wprintf(L"skip");
     break;
+
   case CExpr_seq:
-    if (put_closing) putchar('(');
+    if (put_closing) wprintf(L"(");
     print_ast(expr->exp.seq.c0);
-    printf("; ");
+    wprintf(L"; ");
     print_ast(expr->exp.seq.c1);
-    if (put_closing) putchar(')');
+    if (put_closing) wprintf(L")");
     break;
+
   case CExpr_assign:
-    printf(expr->exp.assign.x);
-    printf(" := ");
+    wprintf(L"%s", expr->exp.assign.x);
+    wprintf(L" := ");
     print_aexp(expr->exp.assign.a);
     break;
+
   case CExpr_cond:
-    printf("if ");
+    wprintf(L"if ");
     print_bexp(expr->exp.cond.b);
-    printf(" then ");
+    wprintf(L" then ");
     print_ast(expr->exp.cond.c0);
-    printf(" else ");
+    wprintf(L" else ");
     print_ast(expr->exp.cond.c1);
     break;
+
   case CExpr_while:
-    printf("while ");
+    wprintf(L"while ");
     print_bexp(expr->exp.loop.b);
-    printf(" do ");
+    wprintf(L" do ");
     print_ast(expr->exp.loop.c);
     break;
+
   case CExpr_repeat:
-    printf("repeat ");
+    wprintf(L"repeat ");
     print_ast(expr->exp.loop.c);
-    printf(" while ");
+    wprintf(L" while ");
     print_bexp(expr->exp.loop.b);
     break;
+
   default:
     fprintf(stderr, "Unmatched case in %s: %d\n", __func__, expr->type);
     break;

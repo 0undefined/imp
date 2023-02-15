@@ -1,14 +1,20 @@
 %{
 #include <stdio.h>
 #include <stdbool.h>
+#include <locale.h>
+#include <wchar.h>
 #include "ast.h"
 
+#define NUMAST 8
+
 extern memory *m;
-extern struct CExpr *ast;
+extern size_t nast;
+extern struct CExpr* ast[NUMAST];
 extern int yylineno;
 extern char* yytext;
 int yylex();
 void yyerror(const char *s);
+void prompt();
 
 //%define api.value.type {AExpr}
 
@@ -27,7 +33,7 @@ void yyerror(const char *s);
   struct CExpr *command_expression;
 }
 
-%type <command_expression>    ast
+%type <command_expression>    ast line
 %type <arithmetic_expression> aexp
 %type <boolean_expression>    bexp
 %type <command_expression>    cexp
@@ -59,8 +65,11 @@ void yyerror(const char *s);
 
 %%
 ast: { $$ = NULL; }
-  | cexp EOL { $$ = $1; ast = $$; }
+  | ast line { $$ = $2; ast[nast++] = $$; prompt(); }
   ;
+
+line: EOL { $$ = NULL; }
+    | cexp EOL { $$ = $1; }
 
 aexp:
     aexp ADD aexp { $$ = new_infix(m, AExpr_add, $1, $3); }
@@ -95,4 +104,26 @@ cexp:
 void
 yyerror(const char *s) {
   fprintf(stderr, "Error %d: %s\n", yylineno, s);
+}
+
+static inline wchar_t
+digit_to_sub(int d) {
+  return 0x2080 + d;
+}
+
+static inline wchar_t
+digit_to_sup(int d) {
+  wchar_t table[] = {
+    0x2070,
+    0x00B9, 0x00B2, 0x00B3,
+    0x2074, 0x2075, 0x2076,
+    0x2077, 0x2078, 0x2079,
+  };
+
+  return table[d];
+}
+
+void
+prompt() {
+  wprintf(L"e%lc: ", digit_to_sub(nast));
 }
