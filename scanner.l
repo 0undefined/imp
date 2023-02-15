@@ -1,9 +1,9 @@
 %{
+#include <stdbool.h>
 #include "parser.tab.h"
 extern void yyerror(const char *message);
 %}
 
-%option noyywrap
 %%
 
 "("       { return LPAR; }
@@ -22,8 +22,23 @@ extern void yyerror(const char *message);
 "-"       { return SUB; }
 "*"       { return MUL; }
 
-[a-zA-Z]  { yylval.loc = yytext; return VAR; }
+("~"|"¬")       { return NEG; }
+"/\\"     { return AND; }
+"="       { return EQUAL; }
+("<="|"≤")       { return LEQUAL; }
 
-\n        { return EOL; }
+"skip"    { return SKIP; }
+":="      { return ASSIGN; }
+";"       { return SEMICOLON; }
+"if"      { return IF; }
+"then"    { return THEN; }
+"else"    { return ELSE; }
+"while"   { return WHILE; }
+"do"      { return DO; }
+"repeat"  { return REPEAT; }
+
+[a-zA-Z]+  { yylval.loc = strdup(yytext); return VARIABLE; }
+
+[\n]        { return EOL; }
 
 %%

@@ -7,7 +7,7 @@
 memory *m = NULL;
 extern FILE* yyin;
 
-struct AExpr *ast;
+struct CExpr *ast;
 
 int main (int argc, char* argv[]) {
   int ret = 0;
@@ -24,10 +24,11 @@ int main (int argc, char* argv[]) {
   ret = yyparse();
 
   if (ret) {
-    perror("failed to parse file");
+    fprintf(stderr, "failed to parse input\n");
   } else {
-    print_ast(ast);
-	printf("\n");
+    if (ast == NULL) printf("()");
+    else print_ast(ast);
+    printf("\n");
   }
 
   return 0;
